@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIVA EARNING ZONE - PREMIUM MASTER</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           [SECTION 1] CORE & USER STYLES
+           ========================================= */
+        :root { --primary: #22c55e; --bg: #f0f4f8; --card: #ffffff; --text: #1e293b; --p-blue: #2563eb; --danger: #ef4444; --success: #10b981; --warning: #f59e0b; }
+        * { box-sizing: border-box; font-family: 'Urbanist', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); margin: 0; padding: 15px; padding-bottom: 120px; color: var(--text); }
+
+        /* LOADING SCREEN */
+        #loading { position: fixed; inset: 0; background: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; transition: 0.5s; }
+        .light-box { position: relative; width: 130px; height: 130px; background: white; border-radius: 35px; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .light-box::before { content: ''; position: absolute; width: 200%; height: 200%; background: conic-gradient(transparent, transparent, transparent, #3b82f6); animation: rotate 1.5s linear infinite; }
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+        .inner-img { position: absolute; inset: 4px; background: white; border-radius: 32px; z-index: 2; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .inner-img img { width: 100%; height: 100%; object-fit: cover; }
+        .loading-title { margin-top: 25px; font-size: 22px; font-weight: 900; color: #1e293b; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* USER UI */
+        .help-btn { position: fixed; top: 20px; right: 20px; width: 45px; height: 45px; background: white; border-radius: 15px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 22px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); z-index: 1000; border: 1.5px solid #e2e8f0; }
+        .profile-card { background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 25px; padding: 22px; color: white; display: flex; align-items: center; margin-bottom: 15px; margin-top: 60px; }
+        .user-avatar { width: 60px; height: 60px; border-radius: 18px; border: 2px solid rgba(255,255,255,0.3); object-fit: cover; }
+        .action-card { background: var(--card); border-radius: 24px; padding: 16px; margin-bottom: 12px; border: 1.5px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: inherit; }
+        .icon-box { width: 45px; height: 45px; border-radius: 15px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        
+        .coin-card { 
+    background: var(--card); 
+    border-radius: 24px; 
+    padding: 20px; 
+    margin-bottom: 15px; 
+    border: 1.5px solid #e2e8f0; 
+    position: relative; 
+}
+
+.coin-card.offline { 
+    opacity: 0.7; 
+    filter: grayscale(0.8); 
+    pointer-events: none; 
+    border-color: #334155;
+}
+
+/* Online thakle CLICK HERE auto ashbe */
+.coin-card:not(.offline)::after {
+    content: "CLICK HERE";
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: 15px;
+    font-size: 11px;
+    font-weight: 900;
+    color: #10b981;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Offline thakle CLICK HERE thakbe na */
+.coin-card.offline::after {
+    content: none;
+}
+
+.status-badge { 
+    position: absolute; 
+    top: 20px; 
+    right: 20px; 
+    padding: 5px 12px; 
+    border-radius: 10px; 
+    font-size: 10px; 
+    font-weight: 900; 
+}
+
+.status-online { background: #dcfce7; color: #166534; }
+.status-offline { background: #FF2E2E; color: #A30000; }
+        
+        .rate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .rate-box { background: #f8fafc; padding: 12px; border-radius: 18px; text-align: center; border: 1px solid #f1f5f9; }
+        .rate-box small { font-size: 9px; color: #94a3b8; font-weight: 800; text-transform: uppercase; display: block; margin-bottom: 4px; }
+        .rate-val { font-size: 16px; font-weight: 800; }
+
+        /* MODALS */
+        .modal-mask { position: fixed; inset: 0; background: rgba(15,23,42,0.5); backdrop-filter: blur(8px); display: none; align-items: flex-end; z-index: 2000; }
+        .bottom-sheet { background: white; width: 100%; border-radius: 40px 40px 0 0; padding: 30px; transform: translateY(100%); transition: 0.4s; overflow-y: auto; max-height: 90vh; }
+        .modal-mask.active .bottom-sheet { transform: translateY(0); }
+        .form-input { width: 100%; background: #f1f5f9; border: none; padding: 16px; border-radius: 20px; font-size: 16px; font-weight: 700; margin-bottom: 15px; outline: none; }
+        .btn-submit { background: #2563eb; color: white; border: none; width: 100%; padding: 18px; border-radius: 20px; font-size: 17px; font-weight: 800; cursor: pointer; }
+
+        .nav-dock { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: white; border-radius: 35px; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 1001; }
+        .nav-tab { border: none; background: none; color: #94a3b8; font-size: 24px; width: 50px; height: 50px; border-radius: 18px; }
+        .nav-tab.active { background: var(--p-blue); color: white; }
+
+        /* ADMIN BUTTON */
+        #admin-shortcut { display: none; margin-bottom: 15px; padding: 0 5px; }
+        .admin-entry-btn { width: 100%; padding: 18px; background: #ef4444; color: white; border: none; border-radius: 22px; font-weight: 900; box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2); font-size: 14px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+
+       /* =========================================
+           [SECTION 2] UPDATED MODERN ADMIN UI
+           ========================================= */
+        #admin-master-ui { position: fixed; inset: 0; background: #f8fafc; z-index: 100000; display: none; overflow-y: auto; font-family: 'Plus Jakarta Sans', sans-serif; }
+        #admin-lock-screen { position: fixed; inset: 0; background: #0f172a; display: flex; align-items: center; justify-content: center; z-index: 100001; flex-direction: column; color: white; }
+        
+        .adm-container { max-width: 500px; margin: 0 auto; padding: 15px; } 
+
+        /* Statistics Row - Single Box (Total User Removed) */
+        .adm-stats-row { display: block; margin-bottom: 15px; }
+        .adm-stat-box { 
+            background: white; padding: 20px; border-radius: 20px; 
+            border: 1px solid #e2e8f0; text-align: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02); 
+        }
+        .adm-stat-box small { font-weight: 800; color: #64748b; font-size: 10px; display: block; text-transform: uppercase; letter-spacing: 1px;}
+        .adm-stat-box h3 { margin: 5px 0 0; font-size: 28px; color: #1e293b; }
+
+        /* Modern Horizontal Tab Menu (Pashapashi) */
+        .adm-tab-menu { 
+            display: flex; 
+            background: #f1f5f9; 
+            border-radius: 15px; 
+            padding: 5px; 
+            margin-bottom: 20px; 
+            gap: 5px;
+            border: 1px solid #e2e8f0;
+        } 
+        .adm-tab { 
+            flex: 1; 
+            text-align: center; 
+            padding: 12px 5px; 
+            font-size: 11px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            border-radius: 12px; 
+            color: #64748b; 
+            transition: 0.3s;
+        } 
+        .adm-tab.active { 
+    background: #ffffff !important; 
+    color: #2563eb !important; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+}
+
+        /* Order Card - Grid Design */
+        .adm-order-box { 
+            background: white; border-radius: 20px; padding: 18px; 
+            margin-bottom: 15px; border: 1px solid #f1f5f9; 
+            box-shadow: 0 2px 15px rgba(0,0,0,0.02);
+            position: relative; overflow: hidden;
+        }
+        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .order-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        .grid-item { background: #f8fafc; padding: 12px; border-radius: 15px; border: 1px solid #f1f5f9; }
+        .grid-item small { display: block; color: #94a3b8; font-size: 9px; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; }
+        .grid-item b { font-size: 11px; color: #1e293b; }
+
+        .status-badge { font-size: 10px; font-weight: 900; padding: 5px 12px; border-radius: 10px; text-transform: uppercase; }
+
+        /* Forms & Buttons */
+        .adm-input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 10px; font-size: 13px; background: #fcfcfc; }
+        .adm-btn { border: none; padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer; width: 100%; transition: 0.2s; }
+    </style>
+</head>
+<body>
+
+<div id="loading">
+    <div class="light-box">
+        <div class="inner-img">
+            <div class="light-box"><div class="inner-img"><img src="https://i.ibb.co.com/wrsMwZLG/Logo.jpg"></div></div>
+        </div>
+    </div>
+    <div class="loading-title">COIN SELL BD</div>
+    <div class="loading-subtitle">"Best Deal, Premium experience"</div>
+</div>
+
+<div id="user-app-interface" style="display:none;">
+    <a href="#" id="help-link" class="help-btn" target="_blank">🎧</a>
+    
+	
+	<div class="profile-card">
+    <img src="" id="user-pfp" class="user-avatar">
+    <div style="flex:1; margin-left:12px;">
+        <h3 id="user-display-name" style="margin:0;">User</h3>
+        <p id="user-display-tag" style="margin:0; font-size:12px; opacity:0.8;">@username</p>
+    </div>
+    <div style="background:rgba(255,255,255,0.1); padding:8px 12px; border-radius:15px; text-align:center;">
+        <small style="font-size:8px; font-weight:900; display:block;">SUCCESS</small>
+        <b id="suc-count-display">0</b>
+    </div>
+</div>
+
+<div id="admin-shortcut" style="display:none; margin: 15px 5px;">
+    <button onclick="openAdminPanel()" style="width:100%; padding:16px; background:#2563eb; color:white; border:none; border-radius:20px; font-weight:800; font-size:14px; box-shadow:0 10px 20px rgba(37, 99, 235, 0.2);">
+        🛡️ Access Admin Dashboard
+    </button>
+</div>
+	
+	
+<div id="admin-master-ui">
+    <button onclick="closeAdminPanel()" style="position: fixed; top: 20px; right: 20px; z-index: 100002; background: #ef4444; color: white; border: none; padding: 10px 15px; border-radius: 10px; font-weight: 800;">CLOSE ✖</button>
+
+    <div id="admin-lock-screen">
+        <div style="text-align: center; background: rgba(255,255,255,0.05); padding: 40px; border-radius: 30px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);">
+            <div style="font-size: 50px; margin-bottom: 20px;">🛡️</div>
+            <h2 style="margin-bottom: 10px; font-weight: 800;">Admin Verification</h2>
+            <p style="color: #94a3b8; font-size: 13px; margin-bottom: 25px;">Enter secure PIN to access dashboard</p>
+            
+            <input type="password" id="adm-pin-input" maxlength="4" placeholder="••••" style="width: 150px; background: #1e293b; border: 2px solid #334155; color: white; text-align: center; font-size: 24px; padding: 12px; border-radius: 15px; letter-spacing: 5px; margin-bottom: 20px; outline: none;">
+            
+            <button onclick="verifyAdminPin()" style="display: block; width: 100%; background: #2563eb; color: white; border: none; padding: 15px; border-radius: 15px; font-weight: 800; cursor: pointer;">UNLOCK DASHBOARD</button>
+        </div>
+    </div>
+
+    <div id="admin-dashboard-view" style="display: none;">
+        <div class="adm-container">
+            <header style="margin: 30px 0 20px;">
+                <h1 style="font-size: 24px; font-weight: 900; color: #1e293b;">Admin Command Center</h1>
+                <p style="color: #64748b; font-size: 14px;">Manage orders, market rates and settings.</p>
+            </header>
+
+            <div class="adm-stats-row">
+                <div class="adm-stat-box">
+                    <small>Pending Orders</small>
+                    <h3 id="adm-total-pending">0</h3>
+                </div>
+            </div>
+
+            <div class="adm-tab-menu">
+                <div class="adm-tab active" onclick="switchAdminTab('pending', this)">PENDING</div>
+                <div class="adm-tab" onclick="switchAdminTab('history', this)">HISTORY</div>
+                <div class="adm-tab" onclick="switchAdminTab('settings', this)">SETTINGS</div>
+            </div>
+
+            <div id="admin-dynamic-content">
+                </div>
+        </div>
+    </div>
+</div>
+    
+</div>
+
+    <div id="home-scr">
+        <a href="#" id="chan-link" target="_blank" class="action-card">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div class="icon-box">📢</div>
+                <div><b>Join Channel</b><br><small style="color:#64748b;">Updates & Proofs</small></div>
+            </div>
+            <span>❯</span>
+        </a>
+        <div style="font-size:18px; font-weight:800; margin:20px 0 15px 5px;">Coin Market</div>
+        <div id="market-list-display"></div>
+    </div>
+
+    <div id="history-scr" style="display:none; padding-top:10px;"><div id="history-list-display"></div></div>
+    <div id="rank-scr" style="display:none; padding-top:10px;"><div id="rank-list-display"></div></div>
+
+    <nav class="nav-dock">
+        <button class="nav-tab active" onclick="switchTab('home-scr', this)">🏠</button>
+        <button class="nav-tab" onclick="switchTab('history-scr', this)">🕒</button>
+        <button class="nav-tab" onclick="switchTab('rank-scr', this)">🏆</button>
+    </nav>
+</div>
+
+<div id="order-modal" class="modal-mask">
+    <div class="bottom-sheet">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 id="modal-coin-title" style="margin:0; font-size:22px;">Sell Coin</h2>
+            <button onclick="closeModal()" style="background:none; border:none; font-size:24px; color:#94a3b8;">✕</button>
+        </div>
+        <div style="background:#fffbeb; border:1px dashed #fcd34d; padding:15px; border-radius:20px; text-align:center; margin-bottom:20px;">
+            <small style="font-weight:800; color:#b45309;">SEND COINS TO THIS ID</small>
+            <div id="display-admin-id" style="font-size:20px; font-weight:900; margin:5px 0; color:#1e293b;">---</div>
+            <button onclick="copyAdminID()" style="background:white; border:1px solid #fcd34d; padding:5px 15px; border-radius:12px; font-size:11px; font-weight:800;">COPY ID</button>
+        </div>
+        <input type="number" id="input-qty" class="form-input" placeholder="Amount (Min 5000)" oninput="calculatePayout()">
+        <input type="text" id="input-sender" class="form-input" placeholder="SENDER USERNAME">
+        <div style="display:grid; grid-template-columns:1fr 1.2fr; gap:12px;">
+            <select id="input-method" class="form-input"></select>
+            <input type="text" id="input-number" class="form-input" placeholder="Payment Number">
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:15px 0;">
+            <span style="font-weight:700; color:#64748b;">You Get:</span>
+            <div style="text-align:right;">
+                <small style="color:#ef4444; font-weight:800; display:block;">FEE: -5৳</small>
+                <b id="display-final-payout" style="font-size:28px; color:#22c55e;">0.00 ৳</b>
+            </div>
+        </div>
+        <button class="btn-submit" onclick="showConfirmation()">Next Step →</button>
+    </div>
+</div>
+
+<div id="review-modal" class="modal-mask">
+    <div class="bottom-sheet" style="background: #ffffff; border-top: 5px solid #2563eb;">
+        <div style="width: 50px; height: 5px; background: #e2e8f0; border-radius: 10px; margin: 0 auto 20px;"></div>
+        <h2 style="text-align:center; margin-bottom: 5px; font-weight: 900; color: #1e293b;">Review Details</h2>
+        <p style="text-align: center; color: #64748b; font-size: 13px; margin-bottom: 20px;">Please check everything before final submission.</p>
+        
+        <div style="background: #f1f5f9; border-radius: 25px; padding: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                <span style="color: #64748b;">COIN:</span> 
+                <b id="r-coin" style="color:#2563eb; background: #dbeafe; padding: 2px 10px; border-radius: 10px;">---</b>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                <span style="color: #64748b;">Amount:</span> 
+                <b id="r-qty" style="color:#1e293b;">---</b>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                <span style="color: #64748b;">Sender:</span> 
+                <b id="r-sender" style="color:#1e293b;">---</b>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                <span style="color: #64748b;">Method:</span> 
+                <b id="r-method" style="color:#2563eb;">---</b>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                <span style="color: #64748b;">Account No:</span> 
+                <b id="r-number" style="color:#1e293b;">---</b>
+            </div>
+            <hr style="border: 0; border-top: 1px dashed #cbd5e1; margin: 15px 0;">
+            <div style="display:flex; justify-content:space-between; align-items: center;">
+                <span style="font-weight: 800; color: #1e293b;">You Will Get:</span> 
+                <b id="r-pay" style="color:#10b981; font-size:22px; font-weight: 900;">0.00৳</b>
+            </div>
+        </div>
+
+        <button class="btn-submit" onclick="finalSubmitOrder()" style="background: linear-gradient(135deg, #2563eb, #7c3aed); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);">Confirm & Submit ✅</button>
+        <button onclick="closeReviewModal()" style="width:100%; border:none; background:none; margin-top:15px; color:#94a3b8; font-weight:700; font-size: 14px;">Go Back & Edit</button>
+    </div>
+</div>
+
+
+
+<script>
+    /* =========================================
+       CORE LOGIC
+       ========================================= */
+    const firebaseConfig = {
+  apiKey: "AIzaSyAnK8p5fGgc9CuDitb9A-abTW5ucdWaun8",
+  authDomain: "niva-earning-zone.firebaseapp.com",
+  databaseURL: "https://niva-earning-zone-default-rtdb.firebaseio.com",
+  projectId: "niva-earning-zone",
+  storageBucket: "niva-earning-zone.firebasestorage.app",
+  messagingSenderId: "360350060331",
+  appId: "1:360350060331:web:8b37a5ff54d4e5e97e7f6e"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const tg = window.Telegram.WebApp;
+    const ADMIN_LIST = [7926341622, 8505710811];
+
+    let currentSelectedCoin = "", currentCoinRate = 0, currentCoinTID = "", calculatedFinalPayout = 0;
+    let adminActiveTab = 'pending';
+
+    window.onload = () => {
+    tg.expand();
+
+    // টেলিগ্রাম থেকে ইউজার ডাটা নেওয়া
+    const user = tg.initDataUnsafe.user || { id: 0, first_name: "Guest", username: "guest" };
+    const userId = Number(user.id);
+    
+    // গ্লোবাল ভেরিয়েবলে ইউজারনেম সেভ রাখা (লিডারবোর্ডের জন্য)
+    window.currentTelegramUser = user.username || user.first_name || "Guest";
+
+    const userNameEl = document.getElementById('user-display-name');
+    const userTagEl = document.getElementById('user-display-tag');
+    const userPfpEl = document.getElementById('user-pfp');
+
+    if(userNameEl) userNameEl.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
+    if(userTagEl) userTagEl.innerText = "@" + (user.username || "guest");
+    
+    if(userPfpEl) {
+        userPfpEl.src = user.photo_url || `https://ui-avatars.com/api/?name=${user.first_name}&background=3b82f6&color=fff&bold=true`;
+    }
+
+    // --- অ্যাডমিন বাটন সিকিউরিটি ---
+    const adminBtn = document.getElementById('admin-shortcut');
+    if (adminBtn) {
+        if (ADMIN_LIST.includes(userId)) {
+            // শুধুমাত্র অ্যাডমিন হলে বাটনটি দৃশ্যমান হবে
+            adminBtn.style.display = 'flex'; 
+        } else {
+            // অ্যাডমিন না হলে বাটনটি ডকুমেন্ট থেকে পুরোপুরি মুছে যাবে
+            adminBtn.remove(); 
+        }
+    }
+
+    // লোডিং স্ক্রিন প্রসেস
+    setTimeout(() => {
+        const loadingScr = document.getElementById('loading');
+        if(loadingScr) {
+            loadingScr.style.opacity = '0';
+            setTimeout(() => {
+                loadingScr.style.display = 'none';
+                document.getElementById('user-app-interface').style.display = 'block';
+            }, 500);
+        }
+    }, 2000);
+
+    // ডাটা লোড করা শুরু
+    initializeDataFetching();
+    fetchHistory();
+    fetchLeaderboard();
+};
+
+    function initializeDataFetching() {
+    db.ref('marketConfig').on('value', snap => {
+        let html = "";
+        snap.forEach(c => {
+            const v = c.val(); 
+            const on = v.status !== false;
+            // Admin Rate সরিয়ে শুধুমাত্র User Rate রাখা হয়েছে এবং ডিজাইন বড় করা হয়েছে
+            html += `<div class="coin-card ${!on?'offline':''}" onclick="${on?`openOrderModal('${c.key}',${v.userRate},'${v.transferId}')`:''}">
+                <div class="status-badge ${on?'status-online':'status-offline'}">${on?'● Online':'● Offline'}</div>
+                <div style="display:flex; align-items:center; gap:15px; margin-bottom: 15px;">
+                    <div class="icon-box" style="width:50px; height:50px; font-size:24px;">💰</div>
+                    <div><b style="font-size:20px;">${c.key}</b><br><small style="color:#64748b; font-weight:800;">MARKET PRICE</small></div>
+                </div>
+                <div class="rate-grid" style="grid-template-columns: 1fr;"> 
+                    <div class="rate-box" style="background: #f0f3fd; border: 1.5px solid #224dc5; padding: 18px; border-radius: 20px;">
+                        <small style="font-size: 11px; color: #b0c5ff; font-weight: 900;">YOU WILL RECEIVE (PER 1K)</small>
+                        <div class="rate-val" style="font-size: 32px; color: #274eba; font-weight: 900; margin-top: 5px;">${v.userRate}৳</div>
+                    </div>
+                </div>
+            </div>`;
+        });
+        document.getElementById('market-list-display').innerHTML = html;
+    });
+
+    db.ref('settings/links').on('value', s => {
+        if(s.val()){
+            document.getElementById('chan-link').href = s.val().channel || "#";
+            document.getElementById('help-link').href = s.val().help || "#";
+        }
+    });
+
+    db.ref('paymentMethods').on('value', s => {
+        let o = ""; s.forEach(p => { if(p.val().status) o += `<option value="${p.key}">${p.key}</option>`; });
+        document.getElementById('input-method').innerHTML = o || "<option>No Method</option>";
+    });
+}
+
+    /* --- USER HELPERS --- */
+    // Admin Tab Switching Logic
+function switchAdminTab(t, el) {
+    // ১. Active Tab Variable Update
+    adminActiveTab = t;
+
+    // ২. UI-te Active Class Change
+    document.querySelectorAll('.tab, .adm-tab').forEach(x => x.classList.remove('active'));
+    el.classList.add('active');
+
+    // ৩. Dynamic Content Render
+    const listSection = document.getElementById('order-list-section');
+    const settingsSection = document.getElementById('settings-section');
+
+    if(t === 'settings') {
+        if(listSection) listSection.style.display = 'none';
+        if(settingsSection) settingsSection.style.display = 'block';
+        renderAdminData(); // Settings-er bhitore thaka data render korbe
+    } else {
+        if(settingsSection) settingsSection.style.display = 'none';
+        if(listSection) listSection.style.display = 'block';
+        renderAdminData(); // Pending/History data render korbe
+    }
+}
+
+    function openOrderModal(name, rate, tid) {
+        currentSelectedCoin = name; currentCoinRate = rate; currentCoinTID = tid;
+        document.getElementById('modal-coin-title').innerText = "Sell " + name;
+        document.getElementById('display-admin-id').innerText = tid;
+        document.getElementById('order-modal').style.display = 'flex';
+        setTimeout(() => document.getElementById('order-modal').classList.add('active'), 10);
+    }
+
+    function closeModal() {
+        document.getElementById('order-modal').classList.remove('active');
+        setTimeout(() => document.getElementById('order-modal').style.display = 'none', 400);
+    }
+
+    function calculatePayout() {
+        const qty = document.getElementById('input-qty').value;
+        const raw = (qty/1000) * currentCoinRate;
+        calculatedFinalPayout = raw > 5 ? (raw - 5).toFixed(2) : 0;
+        document.getElementById('display-final-payout').innerText = calculatedFinalPayout + " ৳";
+    }
+
+    function copyAdminID() {
+        navigator.clipboard.writeText(currentCoinTID);
+        alert("Admin ID Copied!");
+    }
+
+    // Function 1: Double Confirm Modal Open Kora
+function showConfirmation() {
+    const qty = document.getElementById('input-qty').value;
+    const sender = document.getElementById('input-sender').value;
+    const num = document.getElementById('input-number').value;
+    const method = document.getElementById('input-method').value;
+
+    if(qty < 5000 || !sender || !num) return alert("Fill all details! (Min 5000)");
+
+    // Review Modal-e user-er dewa data set kora
+    document.getElementById('r-coin').innerText = currentSelectedCoin;
+    document.getElementById('r-qty').innerText = qty;
+    document.getElementById('r-sender').innerText = sender;
+    document.getElementById('r-method').innerText = method;
+    document.getElementById('r-number').innerText = num;
+    document.getElementById('r-pay').innerText = calculatedFinalPayout + " ৳";
+
+    // Prothom modal bondho kore Review modal khola
+    closeModal(); 
+    const rm = document.getElementById('review-modal');
+    rm.style.display = 'flex'; 
+    setTimeout(() => rm.classList.add('active'), 10);
+}
+
+// Function 2: Final Submit (Firebase-e data pathano)
+function finalSubmitOrder() {
+    const orderId = Date.now();
+    const user = tg.initDataUnsafe.user || { id: 12345, username: "guest" };
+
+    db.ref('orders/' + orderId).set({
+        id: orderId, 
+        user: user.username || user.first_name || "guest",
+        coin: currentSelectedCoin, 
+        amt: document.getElementById('r-qty').innerText, 
+        payable: parseFloat(calculatedFinalPayout),
+        sender: document.getElementById('r-sender').innerText, 
+        number: document.getElementById('r-number').innerText, 
+        method: document.getElementById('r-method').innerText, 
+        status: 'pending',
+        targetId: currentCoinTID, 
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        alert("Order Submitted Successfully!");
+        location.reload();
+    });
+}
+
+// Review modal bondho korar extra function
+function closeReviewModal() {
+    document.getElementById('review-modal').classList.remove('active');
+    setTimeout(() => document.getElementById('review-modal').style.display = 'none', 400);
+}
+
+    function finalSubmitOrder() {
+    // Button Disable (Double click protection)
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerText = "Submitting...";
+
+    const orderId = Date.now();
+    const user = tg.initDataUnsafe.user || { id: 12345, username: "guest" };
+
+    db.ref('orders/' + orderId).set({
+        id: orderId, 
+        user: user.username || user.first_name || "guest",
+        coin: currentSelectedCoin, 
+        amt: document.getElementById('r-qty').innerText, 
+        payable: parseFloat(calculatedFinalPayout),
+        sender: document.getElementById('r-sender').innerText, 
+        number: document.getElementById('r-number').innerText, 
+        method: document.getElementById('r-method').innerText, 
+        status: 'pending',
+        targetId: currentCoinTID, 
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        // Form Auto Close Logic
+        closeReviewModal(); 
+        alert("Order Submitted Successfully! Check history for updates.");
+        location.reload(); // Page refresh hoye home-e chole jabe
+    }).catch(err => {
+        alert("Error: " + err.message);
+        btn.disabled = false;
+        btn.innerText = "Confirm & Submit ✅";
+    });
+}
+
+function closeReviewModal() {
+    const rm = document.getElementById('review-modal');
+    rm.classList.remove('active');
+    setTimeout(() => { rm.style.display = 'none'; }, 400);
+}
+
+    function fetchHistory() {
+    // Telegram user data check
+    const user = tg.initDataUnsafe.user || { username: "guest" };
+    const uname = user.username || user.first_name || "guest";
+    
+    // User-er username onujayi orders filter kora
+    db.ref('orders').orderByChild('user').equalTo(uname).on('value', s => {
+        let h = ""; 
+        let count = 0;
+        
+        s.forEach(o => {
+            const d = o.val(); 
+            if(d.status === 'completed') count++;
+            
+            // Status onujayi color set kora
+            const color = d.status === 'pending' ? '#f39c12' : (d.status === 'completed' ? '#2ecc71' : '#e74c3c');
+            
+            h += `<div class="action-card" style="flex-direction:column; align-items:flex-start; gap:8px; margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; width:100%;">
+                        <b>${d.amt} ${d.coin}</b> 
+                        <span style="color:${color}; font-weight:900;">${d.status.toUpperCase()}</span>
+                    </div>
+                    <small style="color:#64748b;">Payable: ${d.payable}৳ | To: ${d.targetId}</small>
+                </div>`;
+        });
+        
+        // UI-te history list ebong success count set kora
+        const historyContainer = document.getElementById('history-list-display');
+        if(historyContainer) historyContainer.innerHTML = h || "<center style='padding:20px; color:#94a3b8;'>No History Found</center>";
+        
+        const countDisplay = document.getElementById('suc-count-display');
+        if(countDisplay) countDisplay.innerText = count;
+    });
+}
+
+    /* --- LEADERBOARD & SALES LOGIC --- */
+
+// ১. লিডারবোর্ড ডাটা ফেচ এবং ডিলিট লজিক (fetchAdminSettingsData এর ভেতরে থাকবে)
+function fetchLeaderboard() {
+    const rankDisplay = document.getElementById('rank-list-display');
+    if (!rankDisplay) return;
+
+    db.ref('leaderboard').on('value', snap => {
+        let users = [];
+        snap.forEach(u => {
+            let data = u.val();
+            if(data.user) users.push(data);
+        });
+
+        // ১. Sorting: Beshi amount upore
+        users.sort((a, b) => (parseFloat(b.totalAmount) || 0) - (parseFloat(a.totalAmount) || 0));
+
+        // ২. Top 10 Filter: Shudhu prothom 10 jonke nibe
+        const top10 = users.slice(0, 10);
+
+        let html = "<h3 style='margin: 15px 5px;'>🏆 Top 10 Sellers</h3>";
+        
+        if (top10.length === 0) {
+            html += "<p style='text-align:center; padding:20px; color:#94a3b8;'>NO HISTORY FOUNND.</p>";
+        } else {
+            top10.forEach((d, i) => {
+                let medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
+                html += `
+                <div class="action-card" style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="font-weight:900; color:#64748b; width:25px; font-size:14px;">${medal}</div>
+                        <b style="font-size:14px; color:#1e293b;">@${d.user}</b>
+                    </div>
+                    <b style="color:#10b981; font-size:15px;">${parseFloat(d.totalAmount).toFixed(2)}৳</b>
+                </div>`;
+            });
+        }
+        
+        rankDisplay.innerHTML = html;
+    });
+}
+
+// ২. লিডারবোর্ড ইউজার ডিলিট ফাংশন
+function deleteLdrUser(username) {
+    if(confirm(`Remove @${username} from leaderboard?`)) {
+        db.ref('leaderboard/' + username).remove()
+        .then(() => {
+            alert("✅ User removed!");
+        })
+        .catch(err => {
+            alert("❌ Error: " + err.message);
+        });
+    }
+}
+
+    /* =========================================
+       ADMIN PANEL LOGIC (ALL FEATURES ADDED)
+       ========================================= */
+    // --- SECTION CONTROL LOGIC ---
+
+function switchTab(id, el) {
+    // ১. Age shob gulo screen (Home, History, Rank) hide korbe
+    const screens = ['home-scr', 'history-scr', 'rank-scr'];
+    screens.forEach(s => {
+        const screenEl = document.getElementById(s);
+        if(screenEl) screenEl.style.display = 'none';
+    });
+
+    // ২. Click kora screen-ti show korbe
+    const target = document.getElementById(id);
+    if(target) target.style.display = 'block';
+
+    // ৩. Nav bar-er button-e active color dibe
+    document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+    if(el) el.classList.add('active');
+
+    // ৪. History ba Rank-e click korle data auto refresh korbe
+    if(id === 'history-scr') fetchHistory();
+    if(id === 'rank-scr') fetchLeaderboard();
+}
+
+/* --- ADMIN PANEL INTERFACE CONTROL --- */
+
+// Admin Panel Open Korar Function
+function openAdminPanel() {
+    const user = tg.initDataUnsafe.user || {};
+    const userId = Number(user.id);
+
+    // ১. চেক করা হচ্ছে ইউজার আইডি এডমিন লিস্টে আছে কিনা
+    if (!ADMIN_LIST.includes(userId)) {
+        alert("Access Denied! You are not an authorized administrator.");
+        tg.HapticFeedback.notificationOccurred('error'); // ফোনে ভাইব্রেশন দিবে
+        return; // ফাংশন এখানেই থেমে যাবে, ড্যাশবোর্ড খুলবে না
+    }
+
+    // ২. আইডি ঠিক থাকলে ড্যাশবোর্ড ওপেন হবে
+    const adminUI = document.getElementById('admin-master-ui');
+    const lockScreen = document.getElementById('admin-lock-screen');
+    const dashboardView = document.getElementById('admin-dashboard-view');
+
+    if (adminUI) {
+        adminUI.style.display = 'block';
+        if(lockScreen) lockScreen.style.display = 'none'; // পিন স্ক্রিন স্কিপ
+        if(dashboardView) dashboardView.style.display = 'block';
+        
+        adminActiveTab = 'pending';
+        renderAdminData(); 
+        tg.HapticFeedback.impactOccurred('medium');
+    }
+}
+
+// Admin UI Close Korar Function
+function closeAdminPanel() {
+    document.getElementById('admin-master-ui').style.display = 'none';
+}
+
+   function startAdminEngine() {
+    // Orders Listener
+    db.ref('orders').on('value', snap => {
+        const orders = snap.val() || {};
+        let pCount = 0;
+        
+        // সব অর্ডার থেকে pending খুঁজে বের করা
+        Object.values(orders).forEach(o => {
+            if(o.status === 'pending') pCount++;
+        });
+
+        // সরাসরি সংখ্যা বসানো
+        const el = document.getElementById('adm-display-pending');
+        if(el) el.innerText = pCount;
+        
+        // লিস্ট আপডেট
+        if(typeof adminActiveTab !== 'undefined' && adminActiveTab !== 'settings') {
+            renderAdminData();
+        }
+    });
+
+    // Users Listener
+    db.ref('users').on('value', snap => {
+        const uCount = snap.numChildren() || 0;
+        const uEl = document.getElementById('adm-display-users');
+        if(uEl) uEl.innerText = uCount;
+    });
+}
+
+    function switchAdminTab(t, el) {
+        adminActiveTab = t;
+        document.querySelectorAll('.adm-tab').forEach(x => x.classList.remove('active'));
+        el.classList.add('active');
+        renderAdminData();
+    }
+
+    // Instant Data Sync-er jonno connection
+let ordersListener = null;
+
+// Real-time Pending Counter (Shob somoy active thakbe)
+db.ref('orders').on('value', s => {
+    const orders = s.val() || {};
+    const count = Object.values(orders).filter(o => o.status === 'pending').length;
+    document.getElementById('adm-total-pending').innerText = count;
+});
+
+/* =========================================
+   COMBINED ADMIN ENGINE (UI + ALL FEATURES)
+   ========================================= */
+
+/* =========================================
+   FIXED ADMIN ENGINE & ACTIONS
+   ========================================= */
+
+function renderAdminData() {
+    const area = document.getElementById('admin-dynamic-content');
+    if (!area) return;
+
+    if(ordersListener) db.ref('orders').off('value', ordersListener);
+
+    if(adminActiveTab === 'settings') {
+        renderSettingsUI(area); 
+    } else {
+        ordersListener = db.ref('orders').on('value', s => {
+            const orders = s.val() || {};
+            let html = "";
+            Object.values(orders).reverse().forEach(o => {
+                const isHistory = (adminActiveTab === 'history');
+                const shouldShow = isHistory ? (o.status !== 'pending') : (o.status === 'pending');
+
+                if (shouldShow) {
+                    const statusColor = o.status === 'pending' ? '#f59e0b' : (o.status === 'completed' ? '#10b981' : '#ef4444');
+                    html += `
+    <div class="adm-order-box" style="border-left: 5px solid ${statusColor}; padding: 12px; margin-bottom: 12px; border-radius: 15px; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+        <div class="order-header" style="margin-bottom: 8px;">
+            <b style="font-size: 14px;">@${o.user}</b>
+            <span class="status-badge" style="background:${statusColor}15; color:${statusColor}; font-size: 10px; padding: 4px 8px; border-radius: 8px;">${o.status.toUpperCase()}</span>
+        </div>
+        
+        <div class="order-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px;">
+    <div class="grid-item" style="background: #f8fafc; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;">
+        <small style="font-size: 10px; color: #64748b; font-weight: 800; text-transform: uppercase;">Coin</small>
+        <b style="display: block; font-size: 14px; color: #1e293b;">${o.coin}</b>
+    </div>
+
+    <div class="grid-item" style="background: #f8fafc; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;">
+        <small style="font-size: 10px; color: #64748b; font-weight: 800; text-transform: uppercase;">Method</small>
+        <b style="display: block; font-size: 14px; color: #1e293b;">${o.method}</b>
+    </div>
+
+    <div class="grid-item" style="background: #f8fafc; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;">
+        <small style="font-size: 10px; color: #64748b; font-weight: 800; text-transform: uppercase;">Asset Amt</small>
+        <b style="display: block; font-size: 14px; color: #1e293b;">${o.amt}</b>
+    </div>
+
+    <div class="grid-item" style="background: #f0fdf4; padding: 8px; border-radius: 8px; border: 1.5px solid #22c55e;">
+        <small style="font-size: 10px; color: #15803d; font-weight: 800; text-transform: uppercase;">Total Payout</small>
+        <b style="display: block; font-size: 18px; color: #16a34a; font-weight: 900;">${o.payable}৳</b>
+    </div>
+</div>
+
+        <div onclick="copyToClipboard('${o.number}')" style="padding: 8px; background: #f1f5f9; border-radius: 10px; border: 1px dashed #cbd5e1; cursor: pointer; margin-bottom: 8px;">
+            <small style="color: #64748b; display: block; font-size: 9px; font-weight: 800; text-transform: uppercase;">Tap to copy</small>
+            <b style="color: #2563eb; font-size: 13px;">📱 ${o.number}</b>
+        </div>
+
+        <div style="padding-left: 4px; margin-bottom: 10px;">
+            <small style="color: #94a3b8; font-size: 9px; font-weight: 700;">SENDER:</small>
+            <b style="font-size: 11px;"> ${o.sender}</b>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+            ${o.status === 'pending' ? `
+                <button onclick="updateOrderStatus('${o.id}','completed','${o.user}',${o.payable})" style="flex: 2; background: #10b981; color: white; border: none; padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer;">APPROVE</button>
+                <button onclick="updateOrderStatus('${o.id}','rejected')" style="flex: 1; background: #fee2e2; color: #ef4444; border: none; padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer;">REJECT</button>
+            ` : ''}
+            <button onclick="if(confirm('Delete?')) db.ref('orders/${o.id}').remove()" style="background: #f1f5f9; border: none; width: 38px; height: 38px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">🗑️</button>
+        </div>
+    </div>`;
+                }
+            });
+            area.innerHTML = html || "<center style='padding:50px; color:#94a3b8;'>No Records Found</center>";
+        });
+    }
+}
+
+function copyToClipboard(val) {
+    if (!val) return;
+    const dummy = document.createElement("textarea");
+    document.body.appendChild(dummy);
+    dummy.value = val;
+    dummy.select();
+    document.execCommand("copy");
+    document.body.removeChild(dummy);
+    alert("✅ Number Copied: " + val);
+}
+
+
+function renderSettingsUI(container) {
+    container.innerHTML = `
+        <div class="settings-card" style="background:white; padding:15px; border-radius:20px; border:1px solid #e2e8f0;">
+            <h4 style="margin-bottom:15px;">💎 Market Rates & Config</h4>
+            <div id="adm-market-config-list">Loading market data...</div>
+            <div style="background:#f8fafc; padding:15px; border-radius:15px; border:1px dashed #cbd5e1; margin-bottom:20px;">
+                <small style="font-weight:800; display:block; margin-bottom:8px;">+ ADD NEW COIN</small>
+                <input type="text" id="new-c-name" class="adm-input" placeholder="Coin Name">
+                <input type="text" id="new-c-tid" class="adm-input" placeholder="Address/UID">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <input type="number" id="new-c-user" class="adm-input" placeholder="User Rate">
+                    <input type="number" id="new-c-admin" class="adm-input" placeholder="Admin Rate">
+                </div>
+                <button onclick="addNewCoin()" class="adm-btn" style="background:#10b981; color:white;">ADD COIN</button>
+            </div>
+            <h4 style="margin-bottom:15px;">💳 Payment Methods</h4>
+            <div id="adm-payment-list"></div>
+            <div style="display:flex; gap:8px; margin-top:10px;">
+                <input type="text" id="new-pay-name" class="adm-input" placeholder="New Method" style="margin:0;">
+                <button onclick="addNewPayment()" class="adm-btn" style="width:80px; background:#1e293b; color:white;">ADD</button>
+            </div>
+            <h4 style="margin-top:25px; margin-bottom:15px;">🔗 Social Links</h4>
+            <input type="text" id="adm-link-chan" class="adm-input" placeholder="Channel Link">
+            <input type="text" id="adm-link-help" class="adm-input" placeholder="Support Link">
+            <button onclick="updateAdmLinks()" class="adm-btn" style="background:#2563eb; color:white;">UPDATE LINKS</button>
+            <h4 style="margin-top:25px; margin-bottom:15px;">🏆 Leaderboard</h4>
+            <div id="adm-leaderboard-list" style="background:#f8fafc; border-radius:12px; padding:10px; max-height:200px; overflow-y:auto;"></div>
+            <button onclick="resetSalesStats()" class="adm-btn" style="background:#ef4444; color:white; margin-top:30px;">⚠️ RESET SALES STATS</button>
+        </div>`;
+    fetchAdminSettingsData();
+}
+
+function fetchAdminSettingsData() {
+    db.ref('leaderboard').on('value', s => {
+        let h = "";
+        s.forEach(u => {
+            const d = u.val();
+            h += `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid #eee;">
+                <div><b>@${d.user}</b><br><small style="color:#10b981">${parseFloat(d.totalAmount).toFixed(2)}৳</small></div>
+                <button style="border:none; color:#ef4444; background:none; font-weight:800; cursor:pointer;" onclick="if(confirm('Delete user?')) db.ref('leaderboard/${d.user}').remove()">DEL</button>
+            </div>`;
+        });
+        const lbArea = document.getElementById('adm-leaderboard-list');
+        if(lbArea) lbArea.innerHTML = h || "No Users";
+    });
+
+    db.ref('marketConfig').on('value', snap => {
+        let html = "";
+        snap.forEach(c => {
+            const v = c.val();
+            html += `
+            <div style="background:#fff; border:1px solid #e2e8f0; border-radius:15px; padding:12px; margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <b>💎 ${c.key}</b>
+                    <label class="adm-switch"><input type="checkbox" ${v.status?'checked':''} onchange="db.ref('marketConfig/${c.key}').update({status:this.checked})"><span class="adm-slider"></span></label>
+                </div>
+                <input type="text" class="adm-input" value="${v.transferId}" onchange="db.ref('marketConfig/${c.key}').update({transferId: this.value})" style="margin-top:8px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <div style="background:#f8fafc; padding:5px; border-radius:8px; text-align:center;"><small style="font-size:8px;">USER</small><br><input type="number" value="${v.userRate}" onchange="db.ref('marketConfig/${c.key}').update({userRate: parseFloat(this.value)})" style="width:100%; border:none; background:transparent; font-weight:800; text-align:center;"></div>
+                    <div style="background:#f8fafc; padding:5px; border-radius:8px; text-align:center;"><small style="font-size:8px;">ADMIN</small><br><input type="number" value="${v.adminRate}" onchange="db.ref('marketConfig/${c.key}').update({adminRate: parseFloat(this.value)})" style="width:100%; border:none; background:transparent; font-weight:800; text-align:center;"></div>
+                </div>
+                <button class="adm-btn" style="color:red; background:none; font-size:11px; margin-top:5px;" onclick="if(confirm('Remove?')) db.ref('marketConfig/${c.key}').remove()">REMOVE COIN</button>
+            </div>`;
+        });
+        const mcArea = document.getElementById('adm-market-config-list');
+        if(mcArea) mcArea.innerHTML = html;
+    });
+
+    db.ref('settings/links').once('value', s => {
+        const d = s.val() || {};
+        if(document.getElementById('adm-link-chan')) document.getElementById('adm-link-chan').value = d.channel || "";
+        if(document.getElementById('adm-link-help')) document.getElementById('adm-link-help').value = d.help || "";
+    });
+
+    db.ref('paymentMethods').on('value', s => {
+        let h = "";
+        s.forEach(p => {
+            h += `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; align-items:center;">
+                <span>${p.key}</span>
+                <div style="display:flex; gap:12px; align-items:center;">
+                    <label class="adm-switch"><input type="checkbox" ${p.val().status?'checked':''} onchange="db.ref('paymentMethods/${p.key}').update({status:this.checked})"><span class="adm-slider"></span></label>
+                    <button style="border:none; color:red; background:none; cursor:pointer;" onclick="db.ref('paymentMethods/${p.key}').remove()">🗑️</button>
+                </div>
+            </div>`;
+        });
+        const pmArea = document.getElementById('adm-payment-list');
+        if(pmArea) pmArea.innerHTML = h;
+    });
+}
+
+/* --- ACTION FUNCTIONS --- */
+
+function addNewCoin() {
+    const n = document.getElementById('new-c-name').value.trim();
+    const tid = document.getElementById('new-c-tid').value.trim();
+    const ur = document.getElementById('new-c-user').value;
+    const ar = document.getElementById('new-c-admin').value;
+    if(n && tid && ur && ar) {
+        db.ref('marketConfig/'+n).set({ transferId: tid, userRate: parseFloat(ur), adminRate: parseFloat(ar), status: true })
+        .then(() => alert("Added!"));
+    }
+}
+
+function addNewPayment() {
+    const name = document.getElementById('new-pay-name').value.trim();
+    if(name) db.ref('paymentMethods/'+name).set({status: true});
+}
+
+function updateAdmLinks() {
+    db.ref('settings/links').set({
+        channel: document.getElementById('adm-link-chan').value,
+        help: document.getElementById('adm-link-help').value
+    }).then(() => alert("Updated!"));
+}
+
+function updateOrderStatus(id, status, user, payable) {
+    db.ref('orders/' + id).update({ status: status }).then(() => {
+        // Order completed holei leaderboard-e add hobe
+        if (status === 'completed' && user && user !== 'undefined') {
+            const ldrRef = db.ref('leaderboard/' + user);
+            ldrRef.once('value', sn => {
+                let d = sn.val() || { totalAmount: 0, user: user };
+                let newTotal = (parseFloat(d.totalAmount) || 0) + (parseFloat(payable) || 0);
+                
+                ldrRef.update({ 
+                    totalAmount: newTotal, 
+                    user: user 
+                });
+            });
+        }
+        alert("Order " + status + "!");
+    });
+}
+
+function resetSalesStats() {
+    if(confirm("Reset Stats?")) {
+        db.ref('orders').once('value', s => {
+            let total = 0;
+            Object.values(s.val() || {}).forEach(o => { if(o.status === 'completed') total += parseFloat(o.payable || 0); });
+            db.ref('stats_reset').set({ resetAmount: total }).then(() => alert("Reset!"));
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    adminActiveTab = 'pending';
+    renderAdminData();
+});
+
+</script>
+</body>
+</html>
